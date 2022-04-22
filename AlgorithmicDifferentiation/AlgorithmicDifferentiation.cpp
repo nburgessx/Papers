@@ -143,6 +143,7 @@ int main()
     vector<double> x2_d = {0,1};
     tangent(x, x2_d);
     
+	// Adjoint mode
     vector<double> f_b = {1,1};
     adjoint(x, f_b);
     
