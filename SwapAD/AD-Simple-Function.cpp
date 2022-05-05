@@ -1,151 +1,60 @@
-// Program to demonstrate tangent and adjoint differentiation for a simple function f(x1,x2) = 2.x1^2 + 3.x2
-#include <vector>
 #include <iostream>
 using namespace std;
 
-// Method to Display the Target Function and Expected Results
-void showFunction(const vector<double> & x)
+double function(double x1, double x2)
 {
-    cout << "Function" << endl;
-    cout << "f(x1, x2) = 2.x1^2 + 3.x1" << endl;
-    cout << "df/dx1 = 4.x1" << endl;
-    cout << "df/dx2 = 3" << endl;
-    cout << endl;
-
-    if (x.size()!=2) return;
-    double x1 = x[0];
-    double x2 = x[1];
-    
-    cout << "Expected Results" << endl;
-    cout << "x1 = " << x1 << endl;
-    cout << "x2 = " << x2 << endl;
-    cout << "f(x1,x2) = " << 2*x1*x1 + 3*x2 << endl;
-    cout << "df/dx1 = " << 4*x1 << endl;
-    cout << "df/dx2 = " << 3 << endl;
-    cout << endl;
+    double a = x1*x1;				// Step 1:  a = x1^2	
+    double b = 2*a; 				// Step 2: 	b = 2.x1^2
+    double c = x2;					// Step 3: 	c = x2
+    double d = 3*c;					// Step 4: 	d = 3*x2
+    double f = b + d;				// Step 5: 	f = 2*x1^2 + 3*x2
+    return f;
 }
 
-// Forward 'Tangent' Method
-// Risk variables are denoted 'dot' with '_d' suffix
-// [IN] vector of input variables x (x1, x2)
-// [IN] vector of risk activation variables x_d (x1_d, x2_d)
-void tangent(const vector<double> & x, const vector<double> & x_d)
+double tangent( double x1, double x2, double x1_dot, double x2_dot )
 {
-    // Target Function: f(x1,x2) = 2.x1^2 + 3.x2
-    
-    // Inputs: x1 and x2
-    if (x.size()!=2) return;
-    double x1 = x[0];
-    double x2 = x[1];
-    
-    // Risk Activation Inputs: x1_d and x2_d
-    if (x_d.size()!=2) return;       
-    double x1_d = x_d[0];           // Init Tangent Mode
-    double x2_d = x_d[1];           // Init Tangent Mode
-    
-    // Forward Calculation
-    double a = x1 * x1;             // 1.   a = x1^2
-    double a_d = 2 * x1 * x1_d;
-    
-    double b = 2 * a;               // 2.   b = 2.x1^2
-    double b_d = 2 * a_d;     
-    
-    double c = x2;                  // 3.   c = x2
-    double c_d = x2_d;
-    
-    double d = 3 * c;               // 4.   d = 3.x2
-    double d_d = 3*c_d;
-    
-    double f = b + d;               // 5.   f = 2.x1^2 + 3.x2
-    double f_d = b_d + d_d;
-    
-    // Tangent Results
-    
-    // Tangent Mode calculates one input sensitivity at a time (similar to numerical bumping)
-    if(x1_d==1.0 && x2_d==0.0)
-    {
-        cout << "Tangent Results for x1" << endl;
-        cout << "x1 = " << x1 << endl;
-        cout << "x2 = " << x2 << endl;
-        cout << "f(x1,x2) = " << f << endl;
-        cout << "df/dx1 = " << f_d << endl;
-        cout << endl;
-    }
-    
-    // Tangent Mode calculates one input sensitivity at a time (similar to numerical bumping)        
-    if(x1_d==0.0 && x2_d==1.0)
-    {
-        cout << "Tangent Results for x2" << endl;
-        cout << "x1 = " << x1 << endl;
-        cout << "x2 = " << x2 << endl;
-        cout << "f(x1,x2) = " << f << endl;
-        cout << "df/dx2 = " << f_d << endl;
-        cout << endl;
-    }
-    
+	double a = x1*x1;				// Step 1:	a = x1^2
+	double a_dot = 2*x1*x1_dot;
+	double b = 2*a; 				// Step 2: 	b = 2.x1^2
+	double b_dot = 2*a_dot;
+	double c = x2;					// Step 3: 	c = x2
+	double c_dot = x2_dot;
+	double d = 3*c;					// Step 4: 	d = 3*x2
+	double d_dot = 3*c_dot;
+	double f = b + d;				// Step 5: 	f = 2*x1^2 + 3*x2
+	double f_dot = b_dot + d_dot;
+ 	return f_dot;
 }
 
-// Backward 'Adjoint' Method
-// Risk variables are denoted 'bar' with '_b' suffix
-// [IN] vector of input variables x (x1, x2)
-// [IN] vector of risk activation variables f_b (f1_b, f2_b)
-void adjoint(const vector<double> & x, const vector<double> & f_b)
+void adjoint( double x1, double x2, double f_bar )
 {
-    // Target Function: f(x1,x2) = 2.x1^2 + 3.x2
-    
-    // Inputs: x1 and x2
-    if (x.size()!=2) return;
-    double x1 = x[0];
-    double x2 = x[1];
-    
-    // Risk Activation Inputs: f1_b and f2_b
-    if (f_b.size()!=2) return;       
-    double f1_b = f_b[0];           // Init Adjoint Mode
-    double f2_b = f_b[1];           // Init Adjoint Mode
-    
-    // Forward Sweep
-    double a = x1 * x1;             // 1.   a = x1^2
-    double b = 2 * a;               // 2.   b = 2.x1^2
-    double c = x2;                  // 3.   c = x2
-    double d = 3 * c;               // 4.   d = 3.x2
-    double f = b + d;               // 5.   f = 2.x1^2 + 3.x2
-    
-    // Back Propogation
-    double b_b = f1_b;              // 5.
-    double d_b = f2_b;              // 5.
-    double c_b = 3 * d_b;           // 4.
-    double x2_b = c_b;              // 3.
-    double a_b = 2 * b_b;           // 2.
-    double x1_b = 2 * x1 * a_b;     // 1.
-    
-    // Adjoint Results
-    cout << "Adjoint Results" << endl;
-    cout << "x1 = " << x1 << endl;
-    cout << "x2 = " << x2 << endl;
-    cout << "f(x1,x2) = " << f << endl;
-    cout << "df/dx1 = " << x1_b << endl;
-    cout << "df/dx2 = " << x2_b << endl;
-    cout << endl;
+ 	// Forward Sweep
+	double a = x1*x1;				// Step 1:	a = x1^2	
+ 	double b = 2*a; 				// Step 2: 	b = 2.x1^2
+ 	double c = x2;					// Step 3: 	c = x2
+ 	double d = 3*c;					// Step 4: 	d = 3*x2
+ 	double f = b + d;				// Step 5: 	f = 2*x1^2 + 3*x2
+
+ 	// Back Propagation
+ 	double b_bar = f_bar;			// Step 5:  b_bar 	= df/db
+ 	double d_bar = f_bar;			// Step 5:	d_bar 	= df/dd
+ 	double c_bar = 3*d_bar;			// Step 4: 	c_bar 	= df/dc
+ 	double x2_bar = c_bar; 			// Step 3:  x2_bar 	= df/dx2
+ 	double a_bar = 2*b_bar;			// Step 2: 	a_bar 	= df/da
+ 	double x1_bar = 2*x1*a_bar;		// Step 1:	x1_bar 	= df/dx1
+ 
+ 	// Display Results
+ 	std::cout << "df/dx1: " << x1_bar << std::endl;
+  	std::cout << "df/dx2: " << x2_bar << std::endl;
 }
 
 int main()
 {
-    vector<double> x = {2, 2};
-    showFunction(x);
-    
-    // Note: Tangent Mode calculates one input sensitivity at a time (similar to numerical bumping)  
-    
-    // Tangent mode for x1_d
-    vector<double> x1_d = {1,0};
-    tangent(x, x1_d);
-    
-    // Tangent mode for x2_d
-    vector<double> x2_d = {0,1};
-    tangent(x, x2_d);
-    
-	// Adjoint mode
-    vector<double> f_b = {1,1};
-    adjoint(x, f_b);
-    
+    cout << "Using (x1,x2) = (2,3)" << endl;
+    cout << "f(x1,x2) = " << function(2,3) << endl;
+	cout << "tangent: x1_dot = " << tangent(2,3,1,0) << endl;
+	cout << "tangent: x2_dot = " << tangent(2,3,0,1) << endl;
+	cout << "adjoint mode" << endl;
+	adjoint(2,3,1);
     return 0;
 }
